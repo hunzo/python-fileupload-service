@@ -44,15 +44,22 @@ async def list_all_files():
 
 @app.get("/getfile/{name_file}")
 async def get_file(name_file: str):
-    if name_file == "":
-        return JSONResponse(content={
-            "error": "bad request"
-        }, status_code=400)
-
     file_path = os.getcwd() + "/upload/" + name_file
 
     if os.path.exists(file_path):
-        return FileResponse(path=file_path, status_code=200)
+        return FileResponse(path=file_path)
+
+    return {
+        "error": "file not found"
+    }
+
+
+@app.get("/download/file/{name_file}")
+async def download_file(name_file: str):
+    file_path = os.getcwd() + "/upload/" + name_file
+
+    if os.path.exists(file_path):
+        return FileResponse(path=file_path, media_type='application/octet-stream', filename=name_file)
 
     return {
         "error": "file not found"
