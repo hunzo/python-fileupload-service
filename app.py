@@ -1,11 +1,40 @@
-from cmath import e
 from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
-import shutil
+from fastapi.responses import HTMLResponse
+from fastapi.params import Security
+from fastapi.security import APIKeyHeader
+from fastapi.exceptions import HTTPException
+from dotenv import load_dotenv
+from routers import route
+from starlette import status
 from typing import List
+
 import os
+import shutil
+
+load_dotenv()
+API_KEY = os.getenv('API_KEY')
+API_KEY_NAME = "x-api-key"
 
 app = FastAPI()
+
+api_key_header_auth = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
+
+
+def check_token(api_key_header: str = Security(api_key_header_auth)):
+
+    # print(os.getenv('X_API_KEY'))
+    if api_key_header != API_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid KEY"
+        )
+
+
+app.include_router(
+    route,
+    prefix="/api",
+    dependencies=[Security(check_token)]
+)
 
 
 @app.get("/")
@@ -26,60 +55,6 @@ async def example_files_service():
     </body>
     """
     return HTMLResponse(content=content)
-
-
-@app.get("/list_files")
-async def list_all_files():
-    files = [f for f in os.listdir(
-        './upload') if os.path.isfile(os.path.join('./upload', f))]
-
-    file_list = []
-    for f in files:
-        file_list.append(f)
-
-    return {
-        "files": file_list
-    }
-
-
-@app.get("/getfile/{name_file}")
-async def get_file(name_file: str):
-    file_path = os.getcwd() + "/upload/" + name_file
-
-    if os.path.exists(file_path):
-        return FileResponse(path=file_path)
-
-    return {
-        "error": "file not found"
-    }
-
-
-@app.get("/download/file/{name_file}")
-async def download_file(name_file: str):
-    file_path = os.getcwd() + "/upload/" + name_file
-
-    if os.path.exists(file_path):
-        return FileResponse(path=file_path, media_type='application/octet-stream', filename=name_file)
-
-    return {
-        "error": "file not found"
-    }
-
-
-@app.delete("/delete/file/{name_file}")
-async def delete_file(name_file: str):
-    file_path = os.getcwd() + "/upload/" + name_file
-    try:
-        os.remove(file_path)
-        return JSONResponse(content={
-            "removed": True
-        }, status_code=200)
-
-    except FileNotFoundError:
-        return JSONResponse(content={
-            "removed": False,
-            "error_message": "File not found"
-        }, status_code=404)
 
 
 @app.post("/upload_singlefile")
