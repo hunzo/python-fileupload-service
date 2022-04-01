@@ -5,6 +5,7 @@ WORKDIR /code
 COPY ./requirements.txt /code/requirements.txt
 
 COPY ./app.py /code
+COPY ./routers.py /code
 
 RUN mkdir -p /code/upload
 
