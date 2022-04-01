@@ -15,7 +15,22 @@ load_dotenv()
 API_KEY = os.getenv('API_KEY')
 API_KEY_NAME = "x-api-key"
 
-app = FastAPI()
+description = f"""
+## Example FastAPI Files service 🚀
+* **Description 1** : blah blah blah
+* **Description 2** : blah blah blah
+"""
+
+app = FastAPI(title="FastAPI files service", description=description,
+              version="0.1.0", contact={
+                    "name": "Setsuna F. Seiei",
+                    "email": "your_email@domain.local",
+                    "url": "https://takraw-s.medium.com"
+              },
+              license_info={
+                  "name": "Apache 2.0",
+                  "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+              },)
 
 api_key_header_auth = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
 
@@ -33,6 +48,7 @@ def check_token(api_key_header: str = Security(api_key_header_auth)):
 app.include_router(
     route,
     prefix="/api",
+    tags=["API Services"],
     dependencies=[Security(check_token)]
 )
 
