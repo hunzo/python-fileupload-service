@@ -1,5 +1,6 @@
 # Python files services
 - add 'x-api-key'
+- default key '123456'
 ## route
 - /api/list_files
 - /api/getfile/{name_file}
